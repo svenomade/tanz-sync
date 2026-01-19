@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>File Drop - Datei-Briefkasten</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            padding: 30px 0;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .bilingual {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .de {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .es {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #e9ecef;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-primary:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .code-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .code-display h2 {
+            color: white;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .code-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin-bottom: 15px;
+        }
+
+        .copy-btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            width: auto;
+            display: inline-block;
+        }
+
+        .copy-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #1976D2;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .file-info p {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        ul {
+            margin: 10px 0 10px 20px;
+            color: #666;
+        }
+
+        ul li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 File Drop</h1>
+            <p>Datei hinterlegen & abholen</p>
+            <p>Depositar y recoger archivos</p>
+        </div>
+
+        <div class="card">
+            <div class="tab-buttons">
+                <button class="tab-btn active" id="sendTab">
+                    <div class="bilingual">
+                        <span class="de">📤 Senden</span>
+                        <span class="es">Enviar</span>
+                    </div>
+                </button>
+                <button class="tab-btn" id="receiveTab">
+                    <div class="bilingual">
+                        <span class="de">📥 Empfangen</span>
+                        <span class="es">Recibir</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Send Section -->
+            <div id="sendSection">
+                <h2>
+                    <div class="bilingual">
+                        <span class="de">Datei hinterlegen</span>
+                        <span class="es">Depositar archivo</span>
+                    </div>
+                </h2>
+
+                <div class="info-box">
+                    <div class="bilingual">
+                        <span class="de">💡 Wähle eine Datei (bis 1 GB), lade sie hoch, und erhalte einen einmaligen Code zum Teilen.</span>
+                        <span class="es">💡 Selecciona un archivo (hasta 1 GB), súbelo y recibe un código único para compartir.</span>
+                    </div>
+                </div>
+
+                <input type="file" id="fileInput" accept="*/*">
+                
+                <div id="fileInfoDisplay" class="file-info hidden">
+                    <p><strong>Datei / Archivo:</strong> <span id="fileName"></span></p>
+                    <p><strong>Größe / Tamaño:</strong> <span id="fileSize"></span></p>
+                </div>
+
+                <button class="btn-primary" id="uploadBtn" disabled>
+                    <div class="bilingual">
+                        <span class="de">📤 Hochladen</span>
+                        <span class="es">Subir</span>
+                    </div>
+                </button>
+
+                <div class="progress-bar" id="uploadProgress">
+                    <div class="progress-fill" id="uploadProgressFill">0%</div>
+                </div>
+
+                <div id="codeDisplay" class="code-display hidden">
+                    <h2>
+                        <div class="bilingual">
+                            <span class="de">✅ Code zum Abholen:</span>
+                            <span class="es">✅ Código para recoger:</span>
+                        </div>
+                    </h2>
+                    <div class="code-box" id="generatedCode"></div>
+                    <button class="copy-btn" id="copyCodeBtn">
+                        <div class="bilingual">
+                            <span class="de">📋 Code kopieren</span>
+                            <span class="es">Copiar código</span>
+                        </div>
+                    </button>
+                    <div class="info-box" style="margin-top: 15px; background: rgba(255,255,255,0.3); color: white; border-left-color: white;">
+                        <div class="bilingual">
+                            <span class="de">📱 Schicke diesen Code per WhatsApp/E-Mail. Die Datei kann einmalig heruntergeladen werden.</span>
+                            <span class="es">📱 Envía este código por WhatsApp/correo. El archivo se puede descargar una sola vez.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="errorDisplay" class="error hidden"></div>
+            </div>
+
+            <!-- Receive Section -->
+            <div id="receiveSection" class="hidden">
+                <h2>
+                    <div class="bilingual">
+                        <span class="de">Datei abholen</span>
+                        <span class="es">Recoger archivo</span>
+                    </div>
+                </h2>
+
+                <div class="info-box">
+                    <div class="bilingual">
+                        <span class="de">💡 Gib den Code ein, den du erhalten hast, um die Datei herunterzuladen.</span>
+                        <span class="es">💡 Ingresa el código que recibiste para descargar el archivo.</span>
+                    </div>
+                </div>
+
+                <input type="text" id="codeInput" placeholder="Code eingeben / Ingresar código" maxlength="50">
+
+                <button class="btn-primary" id="downloadBtn">
+                    <div class="bilingual">
+                        <span class="de">📥 Abholen</span>
+                        <span class="es">Recoger</span>
+                    </div>
+                </button>
+
+                <div class="progress-bar" id="downloadProgress">
+                    <div class="progress-fill" id="downloadProgressFill">0%</div>
+                </div>
+
+                <div id="downloadSuccess" class="success-box hidden">
+                    <div class="bilingual">
+                        <span class="de">✅ Datei erfolgreich heruntergeladen! Der Code ist jetzt ungültig.</span>
+                        <span class="es">✅ ¡Archivo descargado exitosamente! El código ahora es inválido.</span>
+                    </div>
+                </div>
+
+                <div id="downloadError" class="error hidden"></div>
+            </div>
+        </div>
+
+        <!-- How it Works -->
+        <div class="card">
+            <h2>
+                <div class="bilingual">
+                    <span class="de">ℹ️ Wie funktioniert's?</span>
+                    <span class="es">ℹ️ ¿Cómo funciona?</span>
+                </div>
+            </h2>
+            
+            <div style="margin-top: 15px;">
+                <h3 class="de" style="color: #11998e; margin-bottom: 10px;">Senden:</h3>
+                <ul class="de">
+                    <li>Datei auswählen (MP3, MP4, PDF, Bilder, etc.)</li>
+                    <li>Hochladen</li>
+                    <li>Code wird generiert</li>
+                    <li>Code per WhatsApp/E-Mail teilen</li>
+                </ul>
+
+                <h3 class="es" style="color: #11998e; margin: 15px 0 10px 0;">Enviar:</h3>
+                <ul class="es">
+                    <li>Seleccionar archivo (MP3, MP4, PDF, imágenes, etc.)</li>
+                    <li>Subir</li>
+                    <li>Se genera código</li>
+                    <li>Compartir código por WhatsApp/correo</li>
+                </ul>
+
+                <h3 class="de" style="color: #11998e; margin: 15px 0 10px 0;">Empfangen:</h3>
+                <ul class="de">
+                    <li>Code eingeben</li>
+                    <li>"Abholen" drücken</li>
+                    <li>Datei wird heruntergeladen</li>
+                    <li>Code wird ungültig (einmalig nutzbar)</li>
+                </ul>
+
+                <h3 class="es" style="color: #11998e; margin: 15px 0 10px 0;">Recibir:</h3>
+                <ul class="es">
+                    <li>Ingresar código</li>
+                    <li>Presionar "Recoger"</li>
+                    <li>Se descarga el archivo</li>
+                    <li>Código queda inválido (uso único)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const elements = {
+            sendTab: document.getElementById('sendTab'),
+            receiveTab: document.getElementById('receiveTab'),
+            sendSection: document.getElementById('sendSection'),
+            receiveSection: document.getElementById('receiveSection'),
+            fileInput: document.getElementById('fileInput'),
+            fileInfoDisplay: document.getElementById('fileInfoDisplay'),
+            fileName: document.getElementById('fileName'),
+            fileSize: document.getElementById('fileSize'),
+            uploadBtn: document.getElementById('uploadBtn'),
+            uploadProgress: document.getElementById('uploadProgress'),
+            uploadProgressFill: document.getElementById('uploadProgressFill'),
+            codeDisplay: document.getElementById('codeDisplay'),
+            generatedCode: document.getElementById('generatedCode'),
+            copyCodeBtn: document.getElementById('copyCodeBtn'),
+            errorDisplay: document.getElementById('errorDisplay'),
+            codeInput: document.getElementById('codeInput'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            downloadProgress: document.getElementById('downloadProgress'),
+            downloadProgressFill: document.getElementById('downloadProgressFill'),
+            downloadSuccess: document.getElementById('downloadSuccess'),
+            downloadError: document.getElementById('downloadError')
+        };
+
+        // State
+        let selectedFile = null;
+        let uploadedFileKey = null;
+
+        // Tab Switching
+        elements.sendTab.addEventListener('click', () => {
+            elements.sendTab.classList.add('active');
+            elements.receiveTab.classList.remove('active');
+            elements.sendSection.classList.remove('hidden');
+            elements.receiveSection.classList.add('hidden');
+        });
+
+        elements.receiveTab.addEventListener('click', () => {
+            elements.receiveTab.classList.add('active');
+            elements.sendTab.classList.remove('active');
+            elements.receiveSection.classList.remove('hidden');
+            elements.sendSection.classList.add('hidden');
+        });
+
+        // File Selection
+        elements.fileInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                elements.fileName.textContent = selectedFile.name;
+                elements.fileSize.textContent = formatFileSize(selectedFile.size);
+                elements.fileInfoDisplay.classList.remove('hidden');
+                elements.uploadBtn.disabled = false;
+                elements.errorDisplay.classList.add('hidden');
+                elements.codeDisplay.classList.add('hidden');
+            }
+        });
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Upload File
+        elements.uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            if (selectedFile.size > 1024 * 1024 * 1024) {
+                showError('Datei zu groß (max 1 GB) / Archivo muy grande (máx 1 GB)');
+                return;
+            }
+
+            elements.uploadBtn.disabled = true;
+            elements.uploadProgress.style.display = 'block';
+            elements.errorDisplay.classList.add('hidden');
+
+            try {
+                // Use file.io for temporary hosting
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+
+                const xhr = new XMLHttpRequest();
+
+                // Progress tracking
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = Math.round((e.loaded / e.total) * 100);
+                        elements.uploadProgressFill.style.width = percentComplete + '%';
+                        elements.uploadProgressFill.textContent = percentComplete + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success && response.link) {
+                            const code = generateCodeFromUrl(response.link);
+                            displayCode(code, response.link);
+                        } else {
+                            showError('Upload fehlgeschlagen / Subida fallida');
+                        }
+                    } else {
+                        showError('Upload fehlgeschlagen / Subida fallida');
+                    }
+                    elements.uploadBtn.disabled = false;
+                    elements.uploadProgress.style.display = 'none';
+                });
+
+                xhr.addEventListener('error', () => {
+                    showError('Netzwerkfehler / Error de red');
+                    elements.uploadBtn.disabled = false;
+                    elements.uploadProgress.style.display = 'none';
+                });
+
+                xhr.open('POST', 'https://file.io');
+                xhr.send(formData);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showError('Upload fehlgeschlagen / Subida fallida');
+                elements.uploadBtn.disabled = false;
+                elements.uploadProgress.style.display = 'none';
+            }
+        });
+
+        // Generate short code from URL
+        function generateCodeFromUrl(url) {
+            // Extract the file key from file.io URL
+            const key = url.split('/').pop();
+            // Create a shorter, memorable code
+            return 'DROP-' + key.substring(0, 6).toUpperCase();
+        }
+
+        // Display generated code
+        function displayCode(code, fullUrl) {
+            // Store mapping in localStorage
+            localStorage.setItem(code, fullUrl);
+            
+            elements.generatedCode.textContent = code;
+            elements.codeDisplay.classList.remove('hidden');
+            elements.uploadProgress.style.display = 'none';
+        }
+
+        // Copy code to clipboard
+        elements.copyCodeBtn.addEventListener('click', () => {
+            const code = elements.generatedCode.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = elements.copyCodeBtn.innerHTML;
+                elements.copyCodeBtn.innerHTML = '✓ Kopiert / Copiado';
+                setTimeout(() => {
+                    elements.copyCodeBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+
+        // Download File
+        elements.downloadBtn.addEventListener('click', async () => {
+            const code = elements.codeInput.value.trim().toUpperCase();
+            if (!code) {
+                showDownloadError('Bitte Code eingeben / Por favor ingresa el código');
+                return;
+            }
+
+            elements.downloadBtn.disabled = true;
+            elements.downloadProgress.style.display = 'block';
+            elements.downloadSuccess.classList.add('hidden');
+            elements.downloadError.classList.add('hidden');
+
+            try {
+                // Get URL from localStorage
+                const url = localStorage.getItem(code);
+                
+                if (!url) {
+                    showDownloadError('Ungültiger oder bereits verwendeter Code / Código inválido o ya usado');
+                    elements.downloadBtn.disabled = false;
+                    elements.downloadProgress.style.display = 'none';
+                    return;
+                }
+
+                // Download file
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Download failed');
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'file'; // Filename will be determined by browser
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(downloadUrl);
+                document.body.removeChild(a);
+
+                // Remove code from localStorage (one-time use)
+                localStorage.removeItem(code);
+
+                elements.downloadSuccess.classList.remove('hidden');
+                elements.codeInput.value = '';
+
+            } catch (error) {
+                console.error('Download error:', error);
+                showDownloadError('Download fehlgeschlagen. Code möglicherweise bereits verwendet. / Descarga fallida. Código posiblemente ya usado.');
+            }
+
+            elements.downloadBtn.disabled = false;
+            elements.downloadProgress.style.display = 'none';
+            elements.downloadProgressFill.style.width = '100%';
+            elements.downloadProgressFill.textContent = '100%';
+        });
+
+        // Show error
+        function showError(message) {
+            elements.errorDisplay.textContent = message;
+            elements.errorDisplay.classList.remove('hidden');
+        }
+
+        function showDownloadError(message) {
+            elements.downloadError.textContent = message;
+            elements.downloadError.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
